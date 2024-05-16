@@ -2863,7 +2863,7 @@ If a request to '/expensive_computation' takes more than 10 seconds, or if a req
   <%= render_partial("/config/reference/enterprise_only") %>
 </table>
 
-The maximum amount of memory that an application process may use, in megabytes. Once an application process has surpassed its memory limit, Passenger allow it to finish processing all of its current requests, then shut the process down. A value of 0 means that there is no maximum: the application's memory usage will not be checked.
+The soft limit on memory that an application process may use, in megabytes. Once an application process has surpassed this memory limit, Passenger allow it to finish processing all of its current requests, then shuts the process down. A value of 0 means that there is no maximum: the application's memory usage will not be checked.
 
 This option is useful if your application is leaking memory. By shutting it down, all of its memory is guaranteed to be freed by the operating system.
 
@@ -2875,8 +2875,75 @@ This option is useful if your application is leaking memory. By shutting it down
 </div>
 
 <div class="note">
-  This option should be considered as a workaround for misbehaving applications. It is advised that you fix the problem in your application rather than relying on this option as a measure to avoid memory leaks.
+  This option should be considered as a workaround for misbehaving applications. It is advised that you fix the problem in your application rather than relying on this option as a measure to avoid memory leaks. As respawning app processes takes time.
 </div>
+
+
+### PassengerHardMemoryLimit
+
+<table class="table table-bordered table-condensed">
+  <tr>
+    <th>Syntax</th>
+    <td>PassengerHardMemoryLimit <em>megabytes</em></td>
+  </tr>
+  <tr>
+    <th>Default</th>
+    <td>PassengerHardMemoryLimit 0</td>
+  </tr>
+  <tr>
+    <th>Since</th>
+    <td>6.0.21</td>
+  </tr>
+  <tr>
+    <th><a href="http://httpd.apache.org/docs/2.4/mod/directive-dict.html#Context">Context</a></th>
+    <td>server config, virtual host, directory, .htaccess</td>
+  </tr>
+  <tr>
+    <th><a href="http://httpd.apache.org/docs/2.4/mod/directive-dict.html#Override">Override</a></th>
+    <td>Limits</td>
+  </tr>
+  <%= render_partial("/config/reference/enterprise_only") %>
+</table>
+
+The hard limit on memory that an application process may use, in megabytes. Once an application process has surpassed this memory limit, Passenger will kill it within PassengerAnalyticsCollectionRate seconds. A value of 0 means that there is no maximum: the application's memory usage will not result in Passenger killing the process (though the kernel oom killer may still kill the process).
+
+This option is useful if your application is leaking memory. By shutting it down, all of its memory is guaranteed to be freed by the operating system.
+
+<div class="info">
+  <h3 class="notoc">A word about permissions</h3>
+  <p>
+    This option uses the <code>ps</code> command to query memory usage information. On Linux, it further queries <code>/proc</code> to obtain additional memory usage information that's not obtainable through <code>ps</code>. You should ensure that the <code>ps</code> works correctly and that the <code>/proc</code> filesystem is accessible by the <code>Passenger core</code> process.
+  </p>
+</div>
+
+<div class="note">
+  This option should be considered as a workaround for misbehaving applications. It is advised that you fix the problem in your application rather than relying on this option as a measure to avoid memory leaks. As requests that were being served by killed processes will receive error responses, and respawning app processes takes time.
+</div>
+
+
+### PassengerAnalyticsCollectionRate
+
+<table class="table table-bordered table-condensed">
+  <tr>
+    <th>Syntax</th>
+    <td>PassengerAnalyticsCollectionRate <em>seconds</em></td>
+  </tr>
+  <tr>
+    <th>Default</th>
+    <td>PassengerAnalyticsCollectionRate 5</td>
+  </tr>
+  <tr>
+    <th>Since</th>
+    <td>6.0.21</td>
+  </tr>
+  <tr>
+    <th><a href="http://httpd.apache.org/docs/2.4/mod/directive-dict.html#Context">Context</a></th>
+    <td>server config</td>
+  </tr>
+  <%= render_partial("/config/reference/enterprise_only") %>
+</table>
+
+The time Passenger waits between checking the memory use of your application processes, in seconds. A longer duration will allow processes over the memory limit to live longer, but a lower duration will use more CPU time.
 
 
 
